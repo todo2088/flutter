@@ -19,7 +19,7 @@ void configureProject(Project project, String outputDir) {
     }
 
     project.apply plugin: "maven"
-
+    project.apply plugin: "maven-publish"
     // Snapshot versions include the timestamp in the artifact name.
     // Therefore, remove the snapshot part, so new runs of `flutter build aar` overrides existing artifacts.
     // This version isn't relevant in Flutter since the pub version is used
@@ -38,6 +38,30 @@ void configureProject(Project project, String outputDir) {
         repositories {
             mavenDeployer {
                 repository(url: "file://${outputDir}/outputs/repo")
+                // repository(url: "http://10.117.0.199:8081/repository/maven-releases/") {
+                //     authentication(userName: "dev1", password: "dev1@weline.io")
+                // }
+            }
+        }
+    }
+    project.afterEvaluate {
+        publishing {
+            publications {
+                // Creates a Maven publication called "release".
+                release(MavenPublication) {
+                    // Applies the component for the release build variant.
+                    from components.release
+                }
+            }
+        }
+        repositories {
+            mavenDeployer {
+                repository(url: "http://10.117.0.199:8081/repository/maven-releases/") {
+                    authentication(userName: "dev1", password: "dev1@weline.io")
+                }
+                snapshotRepository(url: "http://10.117.0.199:8081/repository/maven-snapshots/") {
+                    authentication(userName: "dev1", password: "dev1@weline.io")
+                }
             }
         }
     }
@@ -165,6 +189,7 @@ projectsEvaluated {
     // because the module POM's file will include a dependency on the plugin Maven artifact.
     // This is due to the Android Gradle Plugin expecting all library subprojects to be published
     // as Maven artifacts.
+    
     modulePlugins.each { pluginProject ->
         configurePlugin(pluginProject, moduleProject.property("output-dir"))
         moduleProject.android.libraryVariants.all { variant ->

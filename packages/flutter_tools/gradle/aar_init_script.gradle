@@ -33,38 +33,23 @@ void configureProject(Project project, String outputDir) {
     project.android.libraryVariants.all { variant ->
         addAarTask(project, variant)
     }
-
+    // String Storage_UrlXXXX = System.getenv('NEXUS_PUBLISH_REMOTE_URL')?:"file://${outputDir}/outputs/repo"
+    // println("Storage_Url: ${Storage_UrlXXXX}")
     project.uploadArchives {
+        String NEXUS_USERNAME =System.getenv('NEXUS_USERNAME')
+        String NEXUS_PWD = System.getenv('NEXUS_PWD')
+
+        String NEXUS_PUBLISH_Storage_Url = System.getenv('NEXUS_PUBLISH_REMOTE_URL')?:"file://${outputDir}/outputs/repo"
+        println("Storage_Url: ${NEXUS_PUBLISH_Storage_Url}")
         repositories {
             mavenDeployer {
-                repository(url: "file://${outputDir}/outputs/repo")
-                // repository(url: "http://10.117.0.199:8081/repository/maven-releases/") {
-                //     authentication(userName: "dev1", password: "dev1@weline.io")
-                // }
-            }
-        }
-    }
-    project.afterEvaluate {
-        publishing {
-            publications {
-                // Creates a Maven publication called "release".
-                release(MavenPublication) {
-                    // Applies the component for the release build variant.
-                    from components.release
-                }
-            }
-        }
-        repositories {
-            mavenDeployer {
-                repository(url: "http://10.117.0.199:8081/repository/maven-releases/") {
-                    authentication(userName: "dev1", password: "dev1@weline.io")
-                }
-                snapshotRepository(url: "http://10.117.0.199:8081/repository/maven-snapshots/") {
-                    authentication(userName: "dev1", password: "dev1@weline.io")
+                repository(url: "${NEXUS_PUBLISH_Storage_Url}"){
+                    authentication(userName: "$NEXUS_USERNAME", password: "$NEXUS_PWD")
                 }
             }
         }
     }
+  
     if (!project.property("is-plugin").toBoolean()) {
         return
     }
